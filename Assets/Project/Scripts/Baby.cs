@@ -109,14 +109,15 @@ public class Baby : Pickupable
 
     protected override void OnHoldingUpdate( Pickuper holder )
     {
-        return;
+        transform.localScale = Vector3.one;
     }
 
     public override void OnDrop( Pickuper holder )
     {
         transform.parent = null;
         transform.position = holder.dropObjPosition.position;
-        
+        transform.localScale = Vector3.one;
+
         navigator.enabled = true;
         navigator.Warp( holder.dropObjPosition.position );
         targetPickup = FindPickup();
