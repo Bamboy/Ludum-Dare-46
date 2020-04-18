@@ -7,8 +7,16 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
-/[Ll]ogs/
+/[Bb]uildsNoStore/
+/[Bb]uildsItchio/
+/[Oo]bj/
+/Assets/AssetStoreTools*
+
 /[Mm]emoryCaptures/
+
+
+# Include DLL files!
+!*.dll
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
