@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     public PlayerMovement Controller { get; private set; }
     public Pickuper Pickup { get; private set; }
 
+    public float pickupDistance = 8f;
 
     private void Awake()
     {
@@ -26,13 +27,13 @@ public class Player : MonoBehaviour
         {
             if( this.Pickup.IsHoldingSomething )
             {
-                this.Pickup.EndHold();
-
                 if( this.Pickup.holdingObject is PickupableRigidbody )
                 {
                     Rigidbody body = (this.Pickup.holdingObject as PickupableRigidbody).body;
-                    body.AddForce( Controller.orientation.rotation.eulerAngles.normalized * 400f );//VectorExtras.Direction( Controller.
+                    body.isKinematic = false;
+                    body.AddForce( Controller.orientation.forward * 16.5f, ForceMode.VelocityChange ); //Throw
                 }
+                this.Pickup.EndHold();
             }
             else
             {
@@ -40,12 +41,25 @@ public class Player : MonoBehaviour
                 Ray ray = MoveCamera.Instance.camera.ScreenPointToRay( Input.mousePosition );
                 if( Physics.Raycast( ray, out data ) )
                 {
-                    Pickupable obj = data.collider.GetComponent<Pickupable>();
-                    if( obj != null )
+                    if( data.distance < pickupDistance )
                     {
-                        if( obj.CanBePickedUpBy( this.Pickup ) )
+                        Pickupable obj = data.collider.GetComponent<Pickupable>();
+                        if( obj != null )
                         {
-                            this.Pickup.StartHold( obj );
+                            if( obj is Baby )
+                            {
+                                Baby bab = obj as Baby;
+                                if( bab.Pickup.IsHoldingSomething )
+                                {
+                                    this.Pickup.StartHold( bab.TakeItem() );
+                                    return;
+                                }
+                            }
+
+                            if( obj.CanBePickedUpBy( this.Pickup ) )
+                            {
+                                this.Pickup.StartHold( obj );
+                            }
                         }
                     }
                 }

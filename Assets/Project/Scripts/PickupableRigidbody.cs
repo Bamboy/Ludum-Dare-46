@@ -12,6 +12,7 @@ public class PickupableRigidbody : Pickupable
     {
         body = GetComponent<Rigidbody>();
         collider = GetComponent<Collider>();
+        Register();
     }
 
     private void Update()
@@ -20,12 +21,12 @@ public class PickupableRigidbody : Pickupable
             OnHoldingUpdate( Holder );
     }
 
-
     public override void OnStartBeingHeld( Pickuper holder )
     {
         collider.enabled = false;
         body.detectCollisions = false;
         body.isKinematic = true;
+        base.OnStartBeingHeld( holder );
     }
 
     protected override void OnHoldingUpdate( Pickuper holder )
@@ -39,7 +40,11 @@ public class PickupableRigidbody : Pickupable
         body.detectCollisions = true;
         body.isKinematic = false;
         transform.parent = null;
+        base.OnDrop( holder );
     }
 
-
+    private void OnDisable()
+    {
+        UnRegister();
+    }
 }

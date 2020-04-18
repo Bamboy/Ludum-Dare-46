@@ -13,7 +13,13 @@ public abstract class Pickupable : MonoBehaviour
 
     public virtual bool CanBePickedUpBy( Pickuper holder ) { return true; }
 
-    public abstract void OnStartBeingHeld( Pickuper holder );
+    public virtual void OnStartBeingHeld( Pickuper holder )
+    {
+        Holder = holder;
+    }
     protected abstract void OnHoldingUpdate( Pickuper holder );
-    public abstract void OnDrop( Pickuper holder );
+    public virtual void OnDrop( Pickuper holder )
+    {
+        Holder = null;
+    }
 }
