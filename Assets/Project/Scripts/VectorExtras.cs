@@ -374,9 +374,9 @@ public class VectorExtras
 		Vector3 spherePoint = OffsetPosInDirection( origin, direction.normalized, 10.0f ) + (Random.insideUnitSphere * Mathf.Clamp(radius, 0.0f, 10.0f));
 		
 		// Comment or Uncomment these three lines for debug drawing. (Cyan is the actual bullet travel, yellow is where you were aiming)
-		//Vector3 sphereCenter = OffsetPosInDirection( origin, direction, 10.0f ); 
-		//Debug.DrawLine( origin, sphereCenter, Color.yellow, 1.0f );
-		//Debug.DrawLine( origin, spherePoint, Color.cyan, 3.0f );
+		Vector3 sphereCenter = OffsetPosInDirection( origin, direction, 10.0f ); 
+		Debug.DrawLine( origin, sphereCenter, Color.yellow, 1.0f );
+		Debug.DrawLine( origin, spherePoint, Color.cyan, 3.0f );
 		
 		return Direction( origin, spherePoint );
 	}

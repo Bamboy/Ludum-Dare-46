@@ -34,13 +34,11 @@ public class Player : MonoBehaviour
                     {
                         if( Vector3.Distance( transform.position, Baby.Instance.transform.position ) < pickupDistance )
                         {
-                           // Debug.Log("VAf");
                             Baby.Instance.PickupGrabber.StartHold( this.TakeItem() );
                             Baby.Instance.StopMoving();
                             return;
                         }
                     }
-                    //GetComponent<Collider>().
                 }
 
                 if( this.PickupGrabber.heldObject is PickupableRigidbody )

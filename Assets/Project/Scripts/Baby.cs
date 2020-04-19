@@ -17,6 +17,11 @@ public class Baby : Pickupable
     public float throwPow = 16.5f;
 
     [Space]
+    public float findNewTargetDelay = 0.8f;
+    [Space]
+    public float getBoredDelay = 3f;
+
+    [Space]
     [ReadOnly]
     public float hunger = 100f;
     public float hungerRate = 1.2f;
@@ -42,6 +47,12 @@ public class Baby : Pickupable
 
     void Update()
     {
+        if( this.PickupGrabber.IsHoldingSomething && Input.GetKeyDown( KeyCode.E ) )
+        {
+            Yeet();
+            //return;
+        }
+
         if( BeingHeld )
         {
             this.OnHoldingUpdate( HeldBy );
@@ -56,14 +67,19 @@ public class Baby : Pickupable
                     targetPickup = FindPickup();
                 }
 
-                if( targetPickup != null )
+                if( targetPickup != null && targetPickup != _lastPickup )
                 {
                     if( Vector3.Distance( transform.position, targetPickup.transform.position ) < pickupDistance )
                     {
                         if( targetPickup.CanBePickedUpBy( this.PickupGrabber ) )
+                        {
                             PickupGrabber.StartHold( targetPickup );
+                            StartCoroutine( GetBoredDelay() );
+                        }
                         else
+                        {
                             targetPickup = FindPickup();
+                        }
 
                         return;
                     }
@@ -81,10 +97,61 @@ public class Baby : Pickupable
         navigator.SetDestination( transform.position );
     }
 
+    void Yeet()
+    {
+        if( this.PickupGrabber.heldObject is PickupableRigidbody )
+        {
+            Rigidbody body = (this.PickupGrabber.heldObject as PickupableRigidbody).body;
+            body.isKinematic = false;
+
+            //Vector3 dir = Random.insideUnitSphere.normalized;
+            //dir = new Vector3( dir.x, this.PickupGrabber.dropObjPosition.forward.y, dir.z ).normalized;
+
+            Vector3 force = VectorExtras.DirectionalCone( this.PickupGrabber.dropObjPosition.position, this.PickupGrabber.dropObjPosition.forward, 7.5f ) * throwPow * Random.Range(0.6f, 1f);
+            body.AddForce( force, ForceMode.VelocityChange ); //Throw
+            DropItem();
+            
+            StopAllCoroutines();
+            StartCoroutine( FindNewTargetDelay() );
+        }
+    }
+
+    IEnumerator FindNewTargetDelay()
+    {
+        float timer = findNewTargetDelay * Random.Range( 0.3f, 1f );
+        while( true )
+        {
+            timer -= Time.deltaTime;
+            if( timer <= 0f )
+            {
+                targetPickup = FindPickup();
+                yield break;
+            }
+            yield return null;
+        }
+    }
+
+    IEnumerator GetBoredDelay()
+    {
+        float timer = getBoredDelay * Random.Range( 0.3f, 1f );
+        while( PickupGrabber.IsHoldingSomething )
+        {
+            timer -= Time.deltaTime;
+            if( timer <= 0f )
+            {
+                Yeet();
+                yield break;
+            }
+            yield return null;
+        }
+        StartCoroutine( FindNewTargetDelay() );
+    }
+
     #region pickup logic
 
     [ShowInInspector][ReadOnly]
     private Pickupable targetPickup;
+    private Pickupable _lastPickup;
 
     public Pickuper PickupGrabber { get; private set; }
 
@@ -92,7 +159,7 @@ public class Baby : Pickupable
     {
         List<Pickupable> piks = new List<Pickupable>( 
             from p in Pickupables.Objects
-                where IsValidPickupTarget( p )
+                where p != _lastPickup && IsValidPickupTarget( p ) 
                     orderby Vector3.Distance(transform.position, p.transform.position) ascending
                         select p );
         if( piks.Count > 0 )
@@ -110,8 +177,18 @@ public class Baby : Pickupable
     public Pickupable TakeItem()
     {
         Pickupable p = this.PickupGrabber.heldObject;
-        this.PickupGrabber.EndHold();
+        DropItem();
+       // this.PickupGrabber.EndHold();
         return p;
+    }
+
+    public void DropItem()
+    {
+        if( this.PickupGrabber.IsHoldingSomething )
+        {
+            _lastPickup = this.PickupGrabber.heldObject;
+            this.PickupGrabber.EndHold();
+        }
     }
     #endregion
 
@@ -125,6 +202,7 @@ public class Baby : Pickupable
 
     public override void OnStartBeingHeld( Pickuper holder )
     {
+        StopAllCoroutines();
         navigator.enabled = false;
         targetPickup = null;
         base.OnStartBeingHeld( holder );
@@ -143,6 +221,9 @@ public class Baby : Pickupable
 
         navigator.enabled = true;
         navigator.Warp( holder.dropObjPosition.position );
+        _lastPickup = null;
+
+        StopAllCoroutines();
         targetPickup = FindPickup();
         base.OnDrop(holder);
     }

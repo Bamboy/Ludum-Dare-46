@@ -23,7 +23,7 @@ public class MilkBottle : PickupableRigidbody
             if( Baby.Instance.hunger >= 100f )
             {
                 Baby.Instance.hunger = 100f;
-                holder.EndHold();
+                Baby.Instance.DropItem();
             }
         }
 
