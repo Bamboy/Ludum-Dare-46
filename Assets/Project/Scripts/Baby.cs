@@ -13,12 +13,15 @@ public class Baby : Pickupable
     private NavMeshAgent navigator;
     new private Collider collider;
 
-    public Pickuper Pickup { get; private set; }
-
     public float pickupDistance = 5f;
+    public float throwPow = 16.5f;
 
-    [ShowInInspector][ReadOnly]
-    private Pickupable targetPickup;
+    [Space]
+    [ReadOnly]
+    public float hunger = 100f;
+    public float hungerRate = 1.2f;
+    public float hungerRestoreRate = 2.5f;
+
 
     private void Awake()
     {
@@ -27,7 +30,7 @@ public class Baby : Pickupable
 
         collider = GetComponent<Collider>();
         navigator = GetComponent<NavMeshAgent>();
-        Pickup = GetComponent<Pickuper>();
+        PickupGrabber = GetComponent<Pickuper>();
         Register();
     }
     private void Start()
@@ -41,11 +44,11 @@ public class Baby : Pickupable
     {
         if( BeingHeld )
         {
-            this.OnHoldingUpdate( Holder );
+            this.OnHoldingUpdate( HeldBy );
         }
         else
         {
-            if( this.Pickup.IsHoldingSomething == false )
+            if( this.PickupGrabber.IsHoldingSomething == false )
             {
                 if( targetPickup == null || targetPickup.BeingHeld )
                 {
@@ -57,8 +60,8 @@ public class Baby : Pickupable
                 {
                     if( Vector3.Distance( transform.position, targetPickup.transform.position ) < pickupDistance )
                     {
-                        if( targetPickup.CanBePickedUpBy( this.Pickup ) )
-                            Pickup.StartHold( targetPickup );
+                        if( targetPickup.CanBePickedUpBy( this.PickupGrabber ) )
+                            PickupGrabber.StartHold( targetPickup );
                         else
                             targetPickup = FindPickup();
 
@@ -73,11 +76,23 @@ public class Baby : Pickupable
         }
     }
 
-    Pickupable FindPickup()
+    public void StopMoving()
+    {
+        navigator.SetDestination( transform.position );
+    }
+
+    #region pickup logic
+
+    [ShowInInspector][ReadOnly]
+    private Pickupable targetPickup;
+
+    public Pickuper PickupGrabber { get; private set; }
+
+    private Pickupable FindPickup()
     {
         List<Pickupable> piks = new List<Pickupable>( 
             from p in Pickupables.Objects
-                where (p != this as Pickupable) && p.BeingHeld == false && p.CanBePickedUpBy( this.Pickup )
+                where IsValidPickupTarget( p )
                     orderby Vector3.Distance(transform.position, p.transform.position) ascending
                         select p );
         if( piks.Count > 0 )
@@ -86,14 +101,22 @@ public class Baby : Pickupable
             return null;
     }
 
+    private bool IsValidPickupTarget( Pickupable obj )
+    {
+        if( obj == this as Pickupable || obj.BeingHeld )
+            return false;
+        return obj.CanBePickedUpBy( this.PickupGrabber );
+    }
     public Pickupable TakeItem()
     {
-        Pickupable p = this.Pickup.holdingObject;
-        this.Pickup.EndHold();
+        Pickupable p = this.PickupGrabber.heldObject;
+        this.PickupGrabber.EndHold();
         return p;
     }
+    #endregion
 
-    #region Pickupable
+    #region Base Pickupable
+    public override string ObjectType { get { return "Baby"; } }
 
     public override bool CanBePickedUpBy( Pickuper holder )
     {
@@ -129,5 +152,11 @@ public class Baby : Pickupable
     void OnDestroy()
     {
         UnRegister();
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere( transform.position, pickupDistance );
     }
 }

@@ -8,9 +8,10 @@ public class Player : MonoBehaviour
     public static Player Instance { get; private set; }
 
     public PlayerMovement Controller { get; private set; }
-    public Pickuper Pickup { get; private set; }
+    public Pickuper PickupGrabber { get; private set; }
 
     public float pickupDistance = 8f;
+    public float throwPow = 16.5f;
 
     private void Awake()
     {
@@ -18,22 +19,37 @@ public class Player : MonoBehaviour
             Instance = this;
 
         Controller = GetComponent<PlayerMovement>();
-        Pickup = GetComponent<Pickuper>();
+        PickupGrabber = GetComponent<Pickuper>();
     }
 
     private void Update()
     {
         if( Input.GetButtonDown( "Fire1" ) )
         {
-            if( this.Pickup.IsHoldingSomething )
+            if( this.PickupGrabber.IsHoldingSomething )
             {
-                if( this.Pickup.holdingObject is PickupableRigidbody )
+                if( this.PickupGrabber.heldObject is MilkBottle )
                 {
-                    Rigidbody body = (this.Pickup.holdingObject as PickupableRigidbody).body;
-                    body.isKinematic = false;
-                    body.AddForce( Controller.orientation.forward * 16.5f, ForceMode.VelocityChange ); //Throw
+                    if( Baby.Instance.PickupGrabber.IsHoldingSomething == false )
+                    {
+                        if( Vector3.Distance( transform.position, Baby.Instance.transform.position ) < pickupDistance )
+                        {
+                           // Debug.Log("VAf");
+                            Baby.Instance.PickupGrabber.StartHold( this.TakeItem() );
+                            Baby.Instance.StopMoving();
+                            return;
+                        }
+                    }
+                    //GetComponent<Collider>().
                 }
-                this.Pickup.EndHold();
+
+                if( this.PickupGrabber.heldObject is PickupableRigidbody )
+                {
+                    Rigidbody body = (this.PickupGrabber.heldObject as PickupableRigidbody).body;
+                    body.isKinematic = false;
+                    body.AddForce( Controller.orientation.forward * throwPow, ForceMode.VelocityChange ); //Throw
+                }
+                this.PickupGrabber.EndHold();
             }
             else
             {
@@ -49,16 +65,24 @@ public class Player : MonoBehaviour
                             if( obj is Baby )
                             {
                                 Baby bab = obj as Baby;
-                                if( bab.Pickup.IsHoldingSomething )
+                                if( bab.PickupGrabber.IsHoldingSomething )
                                 {
-                                    this.Pickup.StartHold( bab.TakeItem() );
+                                    this.PickupGrabber.StartHold( bab.TakeItem() );
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                if( obj.BeingHeld && obj.HeldBy.GetComponent<Baby>() != null )
+                                {
+                                    this.PickupGrabber.StartHold( Baby.Instance.TakeItem() );
                                     return;
                                 }
                             }
 
-                            if( obj.CanBePickedUpBy( this.Pickup ) )
+                            if( obj.CanBePickedUpBy( this.PickupGrabber ) )
                             {
-                                this.Pickup.StartHold( obj );
+                                this.PickupGrabber.StartHold( obj );
                             }
                         }
                     }
@@ -67,4 +91,16 @@ public class Player : MonoBehaviour
         }
     }
 
+    public Pickupable TakeItem()
+    {
+        Pickupable p = this.PickupGrabber.heldObject;
+        this.PickupGrabber.EndHold();
+        return p;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere( transform.position, pickupDistance );
+    }
 }

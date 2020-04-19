@@ -8,18 +8,20 @@ public abstract class Pickupable : MonoBehaviour
     protected void Register() { Pickupables.Register( this ); }
     protected void UnRegister(){ Pickupables.UnRegister( this ); }
 
-    public Pickuper Holder { get; private set; }
-    public bool BeingHeld { get { return Holder != null; } }
+    public abstract string ObjectType { get; }
+
+    public Pickuper HeldBy { get; private set; }
+    public bool BeingHeld { get { return HeldBy != null; } }
 
     public virtual bool CanBePickedUpBy( Pickuper holder ) { return true; }
 
     public virtual void OnStartBeingHeld( Pickuper holder )
     {
-        Holder = holder;
+        HeldBy = holder;
     }
     protected abstract void OnHoldingUpdate( Pickuper holder );
     public virtual void OnDrop( Pickuper holder )
     {
-        Holder = null;
+        HeldBy = null;
     }
 }
