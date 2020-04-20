@@ -8,18 +8,24 @@ using Sirenix.OdinInspector;
 [RequireComponent(typeof(Pickuper))]
 public class Baby : Pickupable
 {
+    public const string ANIM_STATE_NAME = "actionState";
+    public const float ANIM_THROW_LENGTH = 0.5f;
+
     public static Baby Instance { get; private set; }
 
     private NavMeshAgent navigator;
     new private Collider collider;
+    [Required]
+    public Animator animator;
 
+
+    [Space]
     public float pickupDistance = 5f;
     public float throwPow = 16.5f;
 
     [Space]
     public float findNewTargetDelay = 0.8f;
-    [Space]
-    public float getBoredDelay = 3f;
+    public float getBoredDelay = 2f;
 
     [Space]
     [ReadOnly]
@@ -47,11 +53,6 @@ public class Baby : Pickupable
 
     void Update()
     {
-        if( this.PickupGrabber.IsHoldingSomething && Input.GetKeyDown( KeyCode.E ) )
-        {
-            Yeet();
-            //return;
-        }
 
         if( BeingHeld )
         {
@@ -63,7 +64,7 @@ public class Baby : Pickupable
             {
                 if( targetPickup == null || targetPickup.BeingHeld )
                 {
-                    //Find new target
+                    //Find new target with no delay
                     targetPickup = FindPickup();
                 }
 
@@ -73,6 +74,7 @@ public class Baby : Pickupable
                     {
                         if( targetPickup.CanBePickedUpBy( this.PickupGrabber ) )
                         {
+                            AnimationActionState = 0; //sit idle
                             PickupGrabber.StartHold( targetPickup );
                             StartCoroutine( GetBoredDelay() );
                         }
@@ -86,6 +88,7 @@ public class Baby : Pickupable
 
                     //Move to object
                     
+                    AnimationActionState = 1; //walk
                     navigator.SetDestination( targetPickup.transform.position );
                 }
             }
@@ -95,56 +98,81 @@ public class Baby : Pickupable
     public void StopMoving()
     {
         navigator.SetDestination( transform.position );
+        AnimationActionState = 0; //sit idle
     }
 
-    void Yeet()
+
+
+    IEnumerator FindNewTargetDelay( float delay = 0.8f )
     {
-        if( this.PickupGrabber.heldObject is PickupableRigidbody )
-        {
-            Rigidbody body = (this.PickupGrabber.heldObject as PickupableRigidbody).body;
-            body.isKinematic = false;
+        yield return null;
 
-            //Vector3 dir = Random.insideUnitSphere.normalized;
-            //dir = new Vector3( dir.x, this.PickupGrabber.dropObjPosition.forward.y, dir.z ).normalized;
-
-            Vector3 force = VectorExtras.DirectionalCone( this.PickupGrabber.dropObjPosition.position, this.PickupGrabber.dropObjPosition.forward, 7.5f ) * throwPow * Random.Range(0.6f, 1f);
-            body.AddForce( force, ForceMode.VelocityChange ); //Throw
-            DropItem();
-            
-            StopAllCoroutines();
-            StartCoroutine( FindNewTargetDelay() );
-        }
-    }
-
-    IEnumerator FindNewTargetDelay()
-    {
-        float timer = findNewTargetDelay * Random.Range( 0.3f, 1f );
+        AnimationActionState = 0; //sit
+        float timer = delay * Random.Range( 0.3f, 1f );
         while( true )
         {
             timer -= Time.deltaTime;
             if( timer <= 0f )
             {
                 targetPickup = FindPickup();
-                yield break;
+                if( targetPickup != null )
+                {
+                    AnimationActionState = 1; //walk
+                    yield break;
+                }
+                else
+                {
+                    AnimationActionState = 0; //sit
+                    timer = delay * Random.Range( 0.3f, 1f );
+                }
             }
             yield return null;
         }
     }
 
-    IEnumerator GetBoredDelay()
+    IEnumerator GetBoredDelay( float delay = 3f )
     {
-        float timer = getBoredDelay * Random.Range( 0.3f, 1f );
+        yield return null;
+
+        AnimationActionState = 0; //sit
+        float timer = delay * Random.Range( 0.3f, 1f );
         while( PickupGrabber.IsHoldingSomething )
         {
             timer -= Time.deltaTime;
             if( timer <= 0f )
             {
-                Yeet();
+                StopAllCoroutines();
+               // Debug.Break();
+                AnimationActionState = 3; //trigger throw
+                //Yeet();
                 yield break;
             }
             yield return null;
         }
         StartCoroutine( FindNewTargetDelay() );
+    }
+
+
+    /* 
+     * Animation Action states
+     * 
+     * 0 - bored, idle
+     * 
+     * 1 - moving (to object)
+     * 2 - being held
+     * 
+     * 3 - throw
+     * 4 - drinking
+     */
+
+
+
+
+    [ShowInInspector][ReadOnly]
+    public int AnimationActionState
+    {
+        get { return animator.GetInteger( ANIM_STATE_NAME ); }
+        set { animator.SetInteger( ANIM_STATE_NAME, value ); }
     }
 
     #region pickup logic
@@ -190,6 +218,37 @@ public class Baby : Pickupable
             this.PickupGrabber.EndHold();
         }
     }
+
+    public void Yeet()
+    {
+        if( this.PickupGrabber.heldObject is PickupableRigidbody )
+        {
+            Rigidbody body = (this.PickupGrabber.heldObject as PickupableRigidbody).body;
+            body.isKinematic = false;
+
+            //Vector3 dir = Random.insideUnitSphere.normalized;
+            //dir = new Vector3( dir.x, this.PickupGrabber.dropObjPosition.forward.y, dir.z ).normalized;
+
+            this.PickupGrabber.dropObjPosition.parent.localRotation = Quaternion.Euler(0f, Random.Range(-180f, 180f), 0f);
+            Vector3 force = VectorExtras.DirectionalCone( this.PickupGrabber.dropObjPosition.position, this.PickupGrabber.dropObjPosition.forward, 7.5f ) * throwPow * Random.Range(0.6f, 1f);
+            body.AddForce( force, ForceMode.VelocityChange ); //Throw
+            DropItem();
+            
+            this.PickupGrabber.dropObjPosition.parent.localRotation = Quaternion.identity;
+
+            AnimationActionState = 0; //sit idle
+
+
+            StopAllCoroutines();
+            StartCoroutine( FindNewTargetDelay(ANIM_THROW_LENGTH) );
+        }
+
+        if( this.PickupGrabber.heldObject is MilkBottle )
+        {
+            (this.PickupGrabber.heldObject as MilkBottle).Show( true );
+        }
+    }
+
     #endregion
 
     #region Base Pickupable
@@ -205,6 +264,9 @@ public class Baby : Pickupable
         StopAllCoroutines();
         navigator.enabled = false;
         targetPickup = null;
+
+        AnimationActionState = 2; //being held sprite
+
         base.OnStartBeingHeld( holder );
     }
 
@@ -225,6 +287,12 @@ public class Baby : Pickupable
 
         StopAllCoroutines();
         targetPickup = FindPickup();
+
+        if( targetPickup == null )
+            AnimationActionState = 0; // sit idle
+        else
+            AnimationActionState = 1; // walk
+
         base.OnDrop(holder);
     }
 

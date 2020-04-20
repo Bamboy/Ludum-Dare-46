@@ -63,11 +63,16 @@ public class Player : MonoBehaviour
                             if( obj is Baby )
                             {
                                 Baby bab = obj as Baby;
-                                if( bab.PickupGrabber.IsHoldingSomething )
+                                if( bab.PickupGrabber.IsHoldingSomething && bab.PickupGrabber.heldObject is MilkBottle == false )
                                 {
                                     this.PickupGrabber.StartHold( bab.TakeItem() );
-                                    return;
                                 }
+                                return;
+                            }
+                            else if( obj is MilkBottle )
+                            {
+                                if( obj.BeingHeld && obj.HeldBy.GetComponent<Baby>() != null )
+                                    return; //Prevent taking bottle from baby
                             }
                             else
                             {

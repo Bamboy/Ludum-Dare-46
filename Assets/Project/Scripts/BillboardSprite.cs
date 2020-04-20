@@ -6,11 +6,6 @@ public class BillboardSprite : MonoBehaviour
 {
     public bool lockUpFacing = true;
 
-    void Start()
-    {
-        
-    }
-
     void LateUpdate()
     {
         if( lockUpFacing )
