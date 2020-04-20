@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour {
 
     //Rotation and look
     private float xRotation;
-    private float sensitivity = 50f;
+    public static float sensitivity = 80f;
     private float sensMultiplier = 1f;
     
     //Movement
@@ -54,8 +54,6 @@ public class PlayerMovement : MonoBehaviour {
     
     void Start() {
         playerScale =  transform.localScale;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
     
@@ -169,7 +167,11 @@ public class PlayerMovement : MonoBehaviour {
     }
     
     private float desiredX;
-    private void Look() {
+    private void Look()
+    {
+        if( Time.timeScale == 0f )
+            return;
+
         float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
         float mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
 

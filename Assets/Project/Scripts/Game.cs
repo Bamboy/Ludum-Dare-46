@@ -23,6 +23,7 @@ public class Game : MonoBehaviour
 
     private void Start()
     {
+        GameInfoUI.Instance.MenuShown = true;
         StartCoroutine( GameTimerRoutine() );
     }
 

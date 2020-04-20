@@ -20,7 +20,7 @@ public class Baby : Pickupable
 
 
     [Space]
-    public float pickupDistance = 5f;
+    public float pickupDistance = 6f;
     public float throwPow = 16.5f;
 
     [Space]
@@ -66,7 +66,14 @@ public class Baby : Pickupable
                 {
                     //Find new target with no delay
                     targetPickup = FindPickup();
-                }
+                    //return;
+                } /*
+                if( Vector3.Distance( navigator.destination, targetPickup.transform.position ) > pickupDistance )
+                {
+                    //Find new target within grab distance
+                    targetPickup = FindPickup();
+                    return;
+                } */
 
                 if( targetPickup != null && targetPickup != _lastPickup )
                 {
@@ -200,6 +207,10 @@ public class Baby : Pickupable
     {
         if( obj == this as Pickupable || obj.BeingHeld )
             return false;
+
+        //if( Vector3.Distance( navigator.destination, obj.transform.position ) > pickupDistance )
+        //    return false;
+
         return obj.CanBePickedUpBy( this.PickupGrabber );
     }
     public Pickupable TakeItem()
