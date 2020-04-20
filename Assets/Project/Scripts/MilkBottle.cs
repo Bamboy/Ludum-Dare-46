@@ -16,7 +16,7 @@ public class MilkBottle : PickupableRigidbody
 
     public void Show( bool state )
     {
-        Debug.Log( state );
+        //Debug.Log( state );
         foreach( MeshRenderer item in renderers )
             item.enabled = state;
     }

@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class PickupableRigidbody : Pickupable
 {
+    public const float RESPAWN_FLOOR = -10f;
     [HideInInspector]
     public Rigidbody body;
     [HideInInspector]
@@ -19,6 +20,14 @@ public class PickupableRigidbody : Pickupable
 
     protected virtual void Update()
     {
+        if( transform.position.y < RESPAWN_FLOOR )
+        {
+            Debug.LogWarning("Object fell out of the world!", this.gameObject);
+            transform.position = Vector3.zero;
+            body.velocity = Vector3.zero;
+            body.AddForce( Random.insideUnitSphere.normalized * Random.Range( 1f, 10f ), ForceMode.VelocityChange );
+        }
+
         if( BeingHeld )
             OnHoldingUpdate( HeldBy );
     }
