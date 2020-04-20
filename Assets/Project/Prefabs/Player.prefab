@@ -127,13 +127,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCam: {fileID: 0}
   orientation: {fileID: 3596817764923631714}
-  moveSpeed: 4500
-  maxSpeed: 15
-  grounded: 0
+  moveSpeed: 2500
+  maxSpeed: 10
+  grounded: 1
   whatIsGround:
     serializedVersion: 2
-    m_Bits: 16183
-  counterMovement: 0.175
+    m_Bits: 8193
+  counterMovement: 0.25
   maxSlopeAngle: 35
   slideForce: 400
   slideCounterMovement: 0.4
@@ -314,18 +314,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8453478040766794745, guid: f78d2e3e1547c1a458290b72fb05bb7a,
         type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.0000009536743
-      objectReference: {fileID: 0}
-    - target: {fileID: 8453478040766794745, guid: f78d2e3e1547c1a458290b72fb05bb7a,
-        type: 3}
       propertyPath: m_LocalPosition.y
       value: -0.29700005
       objectReference: {fileID: 0}
     - target: {fileID: 8453478040766794745, guid: f78d2e3e1547c1a458290b72fb05bb7a,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.00000047683716
+      value: -0.00000023841858
       objectReference: {fileID: 0}
     - target: {fileID: 8453478040766794745, guid: f78d2e3e1547c1a458290b72fb05bb7a,
         type: 3}
