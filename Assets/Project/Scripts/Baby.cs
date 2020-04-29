@@ -30,8 +30,11 @@ public class Baby : Pickupable
     [Space]
     [ReadOnly]
     public float hunger = 100f;
-    public float hungerRate = 1.2f;
+    [Space]
+    public float hungerRate = -1.2f;
+    public float hungerPoisonRate = -Mathf.PI;
     public float hungerRestoreRate = 2.5f;
+
 
 
     private void Awake()
@@ -66,14 +69,7 @@ public class Baby : Pickupable
                 {
                     //Find new target with no delay
                     targetPickup = FindPickup();
-                    //return;
-                } /*
-                if( Vector3.Distance( navigator.destination, targetPickup.transform.position ) > pickupDistance )
-                {
-                    //Find new target within grab distance
-                    targetPickup = FindPickup();
-                    return;
-                } */
+                } 
 
                 if( targetPickup != null && targetPickup != _lastPickup )
                 {
@@ -83,7 +79,9 @@ public class Baby : Pickupable
                         {
                             AnimationActionState = 0; //sit idle
                             PickupGrabber.StartHold( targetPickup );
-                            StartCoroutine( GetBoredDelay() );
+
+                            if( targetPickup.ObjectType != "Bleach" ) //Baby never gets bored of bleach.
+                                StartCoroutine( GetBoredDelay() ); 
                         }
                         else
                         {
@@ -149,9 +147,7 @@ public class Baby : Pickupable
             if( timer <= 0f )
             {
                 StopAllCoroutines();
-               // Debug.Break();
                 AnimationActionState = 3; //trigger throw
-                //Yeet();
                 yield break;
             }
             yield return null;
@@ -207,17 +203,28 @@ public class Baby : Pickupable
     {
         if( obj == this as Pickupable || obj.BeingHeld )
             return false;
+        if( obj.CanBePickedUpBy( this.PickupGrabber ) == false )
+            return false;
 
-        //if( Vector3.Distance( navigator.destination, obj.transform.position ) > pickupDistance )
-        //    return false;
+        //Check if we can reach the object 
+        NavMeshPath path = new NavMeshPath();
+        navigator.CalculatePath( obj.transform.position, path );
 
-        return obj.CanBePickedUpBy( this.PickupGrabber );
+        switch( path.status )
+        {
+            case NavMeshPathStatus.PathComplete:
+                return true;
+            case NavMeshPathStatus.PathPartial:
+                return Vector3.Distance( obj.transform.position, path.corners[ path.corners.Length - 1 ] ) < pickupDistance;
+            default:
+                return false;
+        }
+
     }
     public Pickupable TakeItem()
     {
         Pickupable p = this.PickupGrabber.heldObject;
         DropItem();
-       // this.PickupGrabber.EndHold();
         return p;
     }
 
@@ -318,5 +325,20 @@ public class Baby : Pickupable
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere( transform.position, pickupDistance );
+
+        if( Application.isPlaying == false )
+            return;
+
+        if( navigator.path != null && navigator.path.corners.Length > 1 )
+        {
+            Gizmos.color = Color.red;
+            for( int i = 1; i < navigator.path.corners.Length; i++ )
+            {
+                Gizmos.DrawLine(navigator.path.corners[i], navigator.path.corners[i-1]);
+            }
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere( navigator.path.corners[ navigator.path.corners.Length - 1 ], pickupDistance );
+        }
     }
 }

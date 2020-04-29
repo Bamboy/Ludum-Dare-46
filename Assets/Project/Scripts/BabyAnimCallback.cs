@@ -15,7 +15,6 @@ public class BabyAnimCallback : MonoBehaviour
     public void YeetObject()
     {
         owner.Yeet();
-       // Debug.Break();
     }
 
     public void LateUpdate()

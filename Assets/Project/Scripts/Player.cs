@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
         {
             if( this.PickupGrabber.IsHoldingSomething )
             {
-                if( this.PickupGrabber.heldObject is MilkBottle )
+                if( this.PickupGrabber.heldObject is MilkBottle || this.PickupGrabber.heldObject is BleachBottle )
                 {
                     if( Baby.Instance.PickupGrabber.IsHoldingSomething == false )
                     {

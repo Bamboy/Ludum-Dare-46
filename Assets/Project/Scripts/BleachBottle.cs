@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MilkBottle : PickupableRigidbody
+public class BleachBottle : PickupableRigidbody
 {
-    public override string ObjectType { get { return "Milk"; } }
+    public override string ObjectType { get { return "Bleach"; } }
 
     private MeshRenderer[] renderers;
 
@@ -23,24 +23,19 @@ public class MilkBottle : PickupableRigidbody
     public override bool CanBePickedUpBy( Pickuper holder )
     {
         if( holder.GetComponent<Baby>() != null )
-            return Baby.Instance.hunger <= 25f;
+            return Baby.Instance.hunger >= 25f; //Dont drink bleach - Give player time to find milk
         else
             return true;
     }
 
     public override void OnStartBeingHeld( Pickuper holder )
     {
-        if( Baby.Instance.PickupGrabber == holder )
-            Show( false );
-        else
-            Show( true );
-
         base.OnStartBeingHeld( holder );
     }
 
     protected override void OnHoldingUpdate( Pickuper holder )
     {
-        
+        /*
         if( Baby.Instance.PickupGrabber == holder )
         {
             if( Baby.Instance.hunger >= 100f )
@@ -52,14 +47,12 @@ public class MilkBottle : PickupableRigidbody
             }
             else
                 Baby.Instance.AnimationActionState = 4; // drink
-        }
+        } */
 
     }
 
     public override void OnDrop( Pickuper holder )
     {
-        Show( true );
-
         base.OnDrop( holder );
     }
 }

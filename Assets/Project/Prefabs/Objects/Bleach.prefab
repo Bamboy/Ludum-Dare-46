@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7323408747324194680}
   - component: {fileID: 7323408747324194687}
   - component: {fileID: 7323408747324194686}
-  - component: {fileID: 7323408747324194685}
+  - component: {fileID: 6286552038725242205}
   m_Layer: 12
   m_Name: Bleach
   m_TagString: Untagged
@@ -64,7 +64,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &7323408747324194685
+--- !u!114 &6286552038725242205
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -73,7 +73,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7323408747324194684}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88f388cd7f3774041a247962471df489, type: 3}
+  m_Script: {fileID: 11500000, guid: 006b77d0d9eb8214fae8120aa188148f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   body: {fileID: 0}
@@ -186,7 +186,7 @@ PrefabInstance:
     - target: {fileID: 8453478040766794745, guid: f78d2e3e1547c1a458290b72fb05bb7a,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.8799999
+      value: -2.0888886
       objectReference: {fileID: 0}
     - target: {fileID: 8453478040766794745, guid: f78d2e3e1547c1a458290b72fb05bb7a,
         type: 3}

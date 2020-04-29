@@ -10,6 +10,7 @@ public class GameInfoUI : MonoBehaviour
     public static GameInfoUI Instance { get; private set; }
 
     public TextMeshProUGUI timer;
+    public TextMeshProUGUI timerUnlit;
     public FillBar feedBar;
 
     public GameObject menu;
@@ -17,13 +18,20 @@ public class GameInfoUI : MonoBehaviour
     public GameObject credit;
     public GameObject gameplay;
 
-    
-
     [Space]
     public Color blinkOn;
     public Color blinkOff;
     public float blinkNeedThreshhold = 0.33f;
 
+    private void Awake()
+    {
+        if( Instance == null )
+            Instance = this;
+    }
+    private void Start()
+    {
+        StartCoroutine( BlinkNeedBar( feedBar ) );
+    }
 
     private bool _menuShown = true;
     public bool MenuShown
@@ -57,6 +65,12 @@ public class GameInfoUI : MonoBehaviour
         secs = Mathf.Clamp( secs, 0, 60 );
 
         timer.text = string.Format( "{0:00}:{1:00}", mins, secs );
+        timerUnlit.text = "00:00";
+    }
+    public void SetTimer( string text )
+    {
+        timer.text = text;
+        timerUnlit.text = text;
     }
 
     public void SetFood( float amount )
@@ -68,16 +82,37 @@ public class GameInfoUI : MonoBehaviour
 
     IEnumerator BlinkNeedBar( FillBar bar )
     {
-        while( bar.fillAmount < blinkNeedThreshhold )
+        while( true )
         {
-            if( Mathf.FloorToInt( Time.time ) % 2 == 0 )
-                bar.color = blinkOff;
+            float speed = GetBlinkSpeed(bar);
+            if( speed > 0 )
+            {
+                if( Mathf.FloorToInt( Time.unscaledTime * speed ) % 2 == 0 )
+                    bar.color = blinkOff;
+                else
+                    bar.color = blinkOn;
+            }
             else
-                bar.color = blinkOn;
+                bar.color = blinkOff;
 
             yield return null;
         }
-        bar.color = blinkOff;
+    }
+
+    private float GetBlinkSpeed( FillBar bar )
+    {
+        if( Baby.Instance.PickupGrabber.IsHoldingSomething )
+        {
+            if( Baby.Instance.PickupGrabber.heldObject.ObjectType == "Milk" )
+                return 0f;
+            if( Baby.Instance.PickupGrabber.heldObject.ObjectType == "Bleach" )
+                return Mathf.PI * 1.25f;
+        }
+
+        if( bar.fillAmount < blinkNeedThreshhold )
+            return 1.25f;
+
+        return 0f;
     }
 
     public void Btn_MouseSens( float value )
@@ -95,11 +130,6 @@ public class GameInfoUI : MonoBehaviour
         Application.Quit();
     }
 
-    private void Awake()
-    {
-        if( Instance == null )
-            Instance = this;
-    }
 
     private void Update()
     {

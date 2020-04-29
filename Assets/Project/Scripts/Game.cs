@@ -39,28 +39,55 @@ public class Game : MonoBehaviour
             if( Time.timeScale <= 0f )
                 yield return null;
 
-            TimeLeft -= Time.deltaTime;
-            GameInfoUI.Instance.SetTimer( TimeLeft );
+            
+            
 
-            if( Baby.Instance.PickupGrabber.IsHoldingSomething && Baby.Instance.PickupGrabber.heldObject.ObjectType == "Bottle" )
-                Baby.Instance.hunger += Baby.Instance.hungerRestoreRate * Time.deltaTime;
-            else
-                Baby.Instance.hunger -= Baby.Instance.hungerRate * Time.deltaTime;
 
-            Baby.Instance.hunger = Mathf.Clamp( Baby.Instance.hunger, 0f, 100f );
+
+            //Hunger
+            float hungerChange = Baby.Instance.hungerRate;
+            if( Baby.Instance.PickupGrabber.IsHoldingSomething )
+            {
+                if( Baby.Instance.PickupGrabber.heldObject.ObjectType == "Milk" )
+                    hungerChange = Baby.Instance.hungerRestoreRate;
+                else if( Baby.Instance.PickupGrabber.heldObject.ObjectType == "Bleach" )
+                    hungerChange = Baby.Instance.hungerPoisonRate;
+            }
+
+            Baby.Instance.hunger = Mathf.Clamp( Baby.Instance.hunger + (hungerChange * Time.deltaTime), 0f, 100f );
             GameInfoUI.Instance.SetFood( Baby.Instance.hunger / 100f );
 
+            TimeLeft -= Time.deltaTime;
             if( TimeLeft <= 0f )
             {
-                EndBabysit();
+                EndBabysit( true );
                 yield break;
+            }
+            else
+            {
+                if( Baby.Instance.hunger <= 0f )
+                {
+                    EndBabysit( false );
+                    yield break;
+                }
+                else
+                    GameInfoUI.Instance.SetTimer( TimeLeft );
             }
             yield return null;
         }
     }
 
-    void EndBabysit()
+    void EndBabysit( bool victory )
     {
-
+        GameInfoUI.Instance.SetTimer( victory ? "W.I.N" : "R.I.P" );
+        GameInfoUI.Instance.timer.color = victory ? Color.blue : Color.red;
     }
+
+    /*
+    public enum GameState
+    {
+        Win,
+        Lose,
+        Playing
+    } */
 }
